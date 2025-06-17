@@ -1,12 +1,14 @@
-# Data Challenge 2 with IDEMIA : Computer Vision
+![image](https://github.com/user-attachments/assets/7801c6ef-b410-40c2-a312-f087ec3cc112)![image](https://github.com/user-attachments/assets/63932bf9-96da-4ce2-b623-50c19ddbf1b9)# Data Challenge 2 with IDEMIA : Computer Vision
 
 # IDEMIA 
 IDEMIA is the world leader in identity technologies. It specializes in biometric solutions, secure digital identification, and authentication systems for both governments and private sectors.
 ![image](https://github.com/user-attachments/assets/30139190-db91-4098-97f9-105a12159ca4)
 
 # By RAKOTONIAINA Pety Ialimita (pety.rakotoniaina@télécom-paris.fr)
+![image](https://github.com/user-attachments/assets/7801c6ef-b410-40c2-a312-f087ec3cc112)
 
-# Place during the Data Challenge : Champion ! 
+# Place during the Data Challenge : Champion !
+![image](https://github.com/user-attachments/assets/63932bf9-96da-4ce2-b623-50c19ddbf1b9)
 
 # Structure and Submission Process
 The Data Challenge follows the standard principle of a “Kaggle Competition,” based on real-world data and a specific problem. We will be able to download the labeled training data and the test data (without labels, of course) from the Data Challenge website. The predictions we compute using the methods of our choice for the test data must be submitted (in the form of a flat file) on the Data Challenge website. They will be evaluated instantly, placing you on the competition leaderboard. Multiple submissions are, of course, allowed.
