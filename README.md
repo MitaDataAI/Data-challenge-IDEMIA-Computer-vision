@@ -5,7 +5,6 @@ IDEMIA is the world leader in identity technologies. It specializes in biometric
 ![image](https://github.com/user-attachments/assets/30139190-db91-4098-97f9-105a12159ca4)
 
 # By RAKOTONIAINA Pety Ialimita (pety.rakotoniaina@télécom-paris.fr)
-![image](https://github.com/user-attachments/assets/7801c6ef-b410-40c2-a312-f087ec3cc112)
 
 # Place during the Data Challenge : Champion !
 ![image](https://github.com/user-attachments/assets/63932bf9-96da-4ce2-b623-50c19ddbf1b9)
