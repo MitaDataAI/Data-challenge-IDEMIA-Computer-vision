@@ -6,8 +6,7 @@ IDEMIA is the world leader in identity technologies. It specializes in biometric
 
 # By RAKOTONIAINA Pety Ialimita (pety.rakotoniaina@télécom-paris.fr)
 
-# Place during the Data Challenge : Champion !
-![image](https://github.com/user-attachments/assets/63932bf9-96da-4ce2-b623-50c19ddbf1b9)
+# Place during the Data Challenge : Champion ! 
 
 # Structure and Submission Process
 The Data Challenge follows the standard principle of a “Kaggle Competition,” based on real-world data and a specific problem. We will be able to download the labeled training data and the test data (without labels, of course) from the Data Challenge website. The predictions we compute using the methods of our choice for the test data must be submitted (in the form of a flat file) on the Data Challenge website. They will be evaluated instantly, placing you on the competition leaderboard. Multiple submissions are, of course, allowed.
