@@ -1,6 +1,7 @@
 # Data Challenge 2 with IDEMIA : Computer Vision
 
-# IDEMIA is the world leader in identity technologies. It specializes in biometric solutions, secure digital identification, and authentication systems for both governments and private sectors.
+# IDEMIA 
+IDEMIA is the world leader in identity technologies. It specializes in biometric solutions, secure digital identification, and authentication systems for both governments and private sectors.
 ![image](https://github.com/user-attachments/assets/30139190-db91-4098-97f9-105a12159ca4)
 
 # By RAKOTONIAINA Pety Ialimita (pety.rakotoniaina@télécom-paris.fr)
