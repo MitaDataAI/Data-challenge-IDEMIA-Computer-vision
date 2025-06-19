@@ -27,9 +27,9 @@ $$
 \text{Err} = \frac{\sum_i w_i (p_i - GT_i)^2}{\sum_i w_i}, \quad w_i = \frac{1}{30} + GT_i
 $$
 
-- \( p_i \): predicted occlusion percentage for sample *i*
-- \( GT_i \): ground truth occlusion percentage for sample *i*
-- \( w_i \): weight based on occlusion percentage
+- \p_i \: predicted occlusion percentage for sample *i*
+- \ GT_i \: ground truth occlusion percentage for sample *i*
+- \w_i \: weight based on occlusion percentage
 
 ## Fairness Consideration
 
@@ -39,7 +39,7 @@ $$
 \text{Score} = \frac{\text{Err}_F + \text{Err}_M}{2} + \left| \text{Err}_F - \text{Err}_M \right|
 $$
 
-- \( \text{Err}_F \): weighted error on female samples
-- \( \text{Err}_M \): weighted error on male samples
+- \ \text{Err}_F \: weighted error on female samples
+- \ \text{Err}_M \: weighted error on male samples
 
 The goal is to **minimize the score**, ensuring both accuracy and fairness across genders.
