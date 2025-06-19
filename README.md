@@ -39,7 +39,7 @@ $$
 \text{Score} = \frac{\text{Err}_F + \text{Err}_M}{2} + \left| \text{Err}_F - \text{Err}_M \right|
 $$
 
-- text{Err}_F \: weighted error on female samples
-- text{Err}_M \: weighted error on male samples
+- Err_F \: weighted error on female samples
+- Err_M \: weighted error on male samples
 
 The goal is to **minimize the score**, ensuring both accuracy and fairness across genders.
