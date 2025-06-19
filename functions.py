@@ -1,6 +1,9 @@
 import torch
 import cv2
 import numpy as np
+from torchvision import transforms
+from PIL import Image
+import matplotlib.pyplot as plt
 
 #############################################
 # FUNCTIONS
@@ -227,3 +230,68 @@ def calculate_mean_std(loader, num_channels=3):
     mean = channel_sum / num_elements
     std = (channel_squared_sum / num_elements - mean ** 2) ** 0.5
     return mean, std
+
+#--------------------------------------------------
+# Graphics
+#--------------------------------------------------
+
+def plot_pixel_distribution_by_channel(res_color, 
+                                       title, 
+                                       res_gray=None, 
+                                       levels=5):
+    """
+    Plots the average pixel intensity by occlusion level for each color channel (R, G, B),
+    including the overall mean across channels.
+
+    Args:
+        res_color (DataFrame): DataFrame containing pixel statistics for color images.
+        title (str): Title of the full plot.
+        res_gray (DataFrame, optional): If provided, plots grayscale pixel statistics alongside color for
+        comparison.
+        levels (int): Number of occlusion levels to display (default is 5).
+
+    Behavior:
+        - Generates four subplots: overall mean, Red, Green, and Blue channels.
+        - Displays mean pixel values by occlusion level.
+        - Shades the standard deviation range around each color curve.
+        - If `res_gray` is provided, overlays grayscale means in dashed gray.
+    """
+    res_color = res_color.iloc[:levels, :]
+    if res_gray is not None:
+        res_gray = res_gray.iloc[:levels, :]
+
+    plt.figure(figsize=(10, 2.8))
+
+    channels = [
+        ('mean', 'std_R', 'All channels', 'black'),
+        ('mean_R', 'std_R', 'Red channel', 'r'),
+        ('mean_G', 'std_G', 'Green channel', 'g'),
+        ('mean_B', 'std_B', 'Blue channel', 'b'),
+    ]
+
+    for i, (mean_key, std_key, ch_title, color) in enumerate(channels):
+        plt.subplot(1, 4, i + 1)
+
+        # Color plot
+        plt.plot(res_color['occ_level'], res_color[mean_key], color=color, marker='o', label=f'{mean_key} color')
+        if std_key in res_color:
+            plt.fill_between(res_color['occ_level'],
+                             res_color[mean_key] - res_color[std_key],
+                             res_color[mean_key] + res_color[std_key],
+                             color=color, alpha=0.3, label=f'+/- {std_key}')
+
+        # Optional: grayscale plot
+        if res_gray is not None:
+            plt.plot(res_gray['occ_level'], res_gray[mean_key], color='gray', marker='+', linestyle='--', label=f'{mean_key} gray')
+
+        plt.title(ch_title)
+        plt.xlabel('Occlusion level')
+        plt.ylabel('Pixel value [0-1]')
+        plt.xticks(res_color['occ_level'])
+        plt.ylim(0, 1)
+        plt.grid(axis='y', linestyle='--', linewidth=0.7)
+        plt.legend(prop={'size': 6})
+
+    plt.subplots_adjust(top=0.75, wspace=0.4)
+    plt.suptitle(title, fontsize=16)
+    plt.show()
