@@ -12,34 +12,27 @@ IDEMIA is the world leader in identity technologies. It specializes in biometric
 The Data Challenge follows the standard principle of a “Kaggle Competition,” based on real-world data and a specific problem. We will be able to download the labeled training data and the test data (without labels, of course) from the Data Challenge website. The predictions we compute using the methods of our choice for the test data must be submitted (in the form of a flat file) on the Data Challenge website. They will be evaluated instantly, placing you on the competition leaderboard. Multiple submissions are, of course, allowed.
 
 # Goal
-The primary objective is to predict the percentage of facial occlusion in 30,507 images, based on a training set of 101,341 images. The following image illustrates the key aspects of facial occlusion.
+We have at your disposal 100000 images of human faces, and their occlusion label.
+The goal of this challenge is to regress the percentage of the face that is occluded.
+We also want to have similar performances on female and male, the gender label is given for the train database.
 ![image](https://github.com/user-attachments/assets/998844b2-c83d-479a-9834-51ec9970d685)!
 Red indicates the occluded (hidden) areas of the face, while blue highlights the visible regions. The final image represents a face with 100% visibility.
 
-# Metric
-## Objective  
+# Metrics
 The objective of this challenge is to **regress the percentage of the face that is occluded**.
 
-## Error Calculation
-The error is computed as a **weighted mean squared error**:
+Below is the formula of the evaluation score. You'll first need to compute the error made by your model for men and women separetely. The error is measured as follows
 
 $$
-\text{Err} = \frac{\sum_i w_i (p_i - GT_i)^2}{\sum_i w_i}, \quad w_i = \frac{1}{30} + GT_i
+ Err = \frac{\sum_{i}{w_i(p_i - GT_i)^2}}{\sum_{i}{w_i}}, w_i = \frac{1}{30} + GT_i,
 $$
+where $GT_i$ is the ground truth and p_i the prediction made by your model. 
 
-- p_i \: predicted occlusion percentage for sample *i*
--  GT_i \: ground truth occlusion percentage for sample *i*
-- w_i \: weight based on occlusion percentage
-
-## Fairness Consideration
-
-To ensure fairness across gender groups, the final score is calculated as:
+Then, the final score for the leaderboard is given by
 
 $$
-\text{Score} = \frac{\text{Err}_F + \text{Err}_M}{2} + \left| \text{Err}_F - \text{Err}_M \right|
+Score = \frac{Err_F + Err_M}{2} + \left | Err_F - Err_M \right |,
 $$
+where $Err_F$ and $Err_M$ are the errors obtained for female and men, respectively.
 
-- Err_F \: weighted error on female samples
-- Err_M \: weighted error on male samples
-
-The goal is to **minimize the score**, ensuring both accuracy and fairness across genders.
+Hereafter we show you how to load the data and run a naive baseline using a pretrained model.

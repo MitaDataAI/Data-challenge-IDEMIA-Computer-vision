@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import numpy as np
+
 
 # loss function
 class WeightedMSELoss(nn.Module):
@@ -46,3 +48,57 @@ class WeightedMSELoss2(nn.Module):
         total_weights = range_weights * gender_weights
         weighted_loss = loss * total_weights
         return weighted_loss.mean()
+
+
+def error_fn(df):
+    """
+    Calcule l'erreur quadratique moyenne pondérée pour un DataFrame contenant des prédictions.
+
+    Les poids sont définis comme 1/30 + valeur cible, ce qui donne plus d'importance
+    aux observations ayant une cible plus élevée.
+
+    Args:
+        df (pd.DataFrame): Un DataFrame avec au moins deux colonnes :
+            - "pred" : les prédictions du modèle
+            - "target" : les valeurs réelles
+
+    Returns:
+        float: Erreur quadratique moyenne pondérée
+    """
+    # Extraire les prédictions et les vraies valeurs
+    pred = df.loc[:, "pred"]
+    ground_truth = df.loc[:, "target"]
+
+    # Définir les poids : plus la cible est grande, plus l'observation est pondérée
+    weight = 1 / 30 + ground_truth
+
+    # Calcul de l'erreur quadratique moyenne pondérée
+    return np.sum(((pred - ground_truth) ** 2) * weight, axis=0) / np.sum(weight, axis=0)
+
+def metric_fn(female, male):
+    """
+    Calcule une métrique combinée d'erreur pour les sous-groupes "female" et "male".
+
+    La métrique combine :
+      - la moyenne des erreurs des deux groupes
+      - un terme d'équité basé sur leur différence absolue
+
+    Args:
+        female (pd.DataFrame): Données pour le groupe "female", même format que `error_fn`.
+        male (pd.DataFrame): Données pour le groupe "male", même format que `error_fn`.
+
+    Returns:
+        float: Score final intégrant performance moyenne et équité inter-groupe.
+    """
+    # Calcul de l'erreur pour le groupe masculin
+    err_male = error_fn(male)
+
+    # Calcul de l'erreur pour le groupe féminin
+    err_female = error_fn(female)
+
+    # Affichage des erreurs pour diagnostic
+    print("Male error: ", err_male)
+    print("Female error: ", err_female)
+
+    # Retourne la moyenne des erreurs + écart absolu (pénalise l'injustice)
+    return (err_male + err_female) / 2 + abs(err_male - err_female)

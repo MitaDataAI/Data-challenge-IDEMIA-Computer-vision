@@ -32,100 +32,61 @@ def is_color(img):
         return 0
 
 def preprocess_df(df, image_dir, process_mediapipe=False):
-    """
-    Preprocesses a DataFrame by loading and analyzing corresponding face images.
-
-    This function performs the following steps:
-    - Adds default values for missing 'gender' and 'FaceOcclusion' columns (for test data).
-    - Drops rows with missing FaceOcclusion.
-    - Adds metadata columns such as gender_id, database number, and count.
-    - Initializes and fills image-related properties for each image:
-      - Dimensions (width, height), number of channels, number of pixels
-      - Mean and standard deviation of pixel values (global and by color channel)
-      - Grayscale vs color detection
-    - Optionally initializes columns for MediaPipe post-processing (if process_mediapipe=True).
-
-    Parameters:
-    -----------
-    df : pandas.DataFrame
-        The input DataFrame, must include a 'filename' column pointing to image files.
-
-    image_dir : str
-        Path to the directory where images are stored.
-
-    process_mediapipe : bool, optional (default=False)
-        If True, initializes placeholder columns for MediaPipe output (face mask, pixels, etc.).
-
-    Returns:
-    --------
-    df : pandas.DataFrame
-        The preprocessed DataFrame with additional image-related features.
-    """
-    df = df.copy()  # ← Évite les SettingWithCopyWarning
-
-    # Add missing columns for test sets
+    # add gender and FaceOcclusion columns with -1 values (for test)
     if 'gender' not in df.columns:
-        df['gender'] = -1.0
+        df['gender'] = - np.ones(len(df)).astype(float)
     if 'FaceOcclusion' not in df.columns:
-        df['FaceOcclusion'] = -1.0
-
-    # Preprocessing
+        df['FaceOcclusion'] = -np.ones(len(df)).astype(float)
+        
+    # preprocess the dataframe
     df['initial_index'] = df.index
-    df = df.dropna(subset=['FaceOcclusion']).copy()
+    df = df.dropna(subset=['FaceOcclusion'])
+    df['gender_id'] = np.round(df['gender'] ).astype(int)
+    df['db_number'] = df['filename'].apply(lambda x: (x.split('/')[0])[-1])
+    df['db_number'] = df['db_number'].astype(int)
+    df['count']=1
 
-    df.loc[:, 'gender_id'] = np.round(df['gender']).astype(int)
-    df.loc[:, 'db_number'] = df['filename'].apply(lambda x: (x.split('/')[0])[-1]).astype(int)
-    df.loc[:, 'count'] = 1
+    # add columns for the image properties
+    df['color']= 0 # 1 = color 0 = black & white (grayscale)
+    df['image_width'] = np.zeros(len(df)).astype(int)
+    df['image_height'] = np.zeros(len(df)).astype(int)
+    df['channels'] = np.zeros(len(df)).astype(int)
+    df['pixels'] = np.zeros(len(df)).astype(int)
 
-    # Initialize image properties
-    for col in [
-        'color', 'image_width', 'image_height', 'channels', 'pixels',
-        'pixels_mean', 'pixels_mean_R', 'pixels_mean_G', 'pixels_mean_B',
-        'pixels_std', 'pixels_std_R', 'pixels_std_G', 'pixels_std_B'
-    ]:
-        df.loc[:, col] = 0
+    if process_mediapipe == True:
+        df['face'] = np.ones(len(df)).astype(int)   # 1 = 1 face detected, 0 = no face detected
+        df['face_pixels'] = np.zeros(len(df)).astype(int)
+        df['mask_pixels'] = np.zeros(len(df)).astype(int)
+        print('use preprocessing _mediapipe file to get mediapipe mask, mesh and contours')
 
-    if process_mediapipe:
-        df.loc[:, 'face'] = 1
-        df.loc[:, 'face_pixels'] = 0
-        df.loc[:, 'mask_pixels'] = 0
-        print('Use preprocessing_mediapipe.py to get mediapipe mask, mesh and contours')
-
-    # Loop through images
+    # loop through the images to extract properties
     for i in df.index:
-        if i % 5000 == 0:
-            print(i)
+
+        if i % 5000 == 0: print(i)
 
         try:
             filename = df.loc[i, 'filename']
-            image_path = f"{image_dir}/{filename}"
-            image = cv2.imread(image_path)
-
-            if image is None:
-                raise ValueError("Image not found or unreadable")
-
+    
+            # load image; convert and save information
+            image = cv2.imread(f"{image_dir}/{filename}")
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
+            
             df.loc[i, 'image_width'] = image.shape[0]
             df.loc[i, 'image_height'] = image.shape[1]
             df.loc[i, 'pixels'] = image.shape[0] * image.shape[1]
             df.loc[i, 'channels'] = image.shape[2]
-            df.loc[i, 'pixels_mean'] = np.mean(image)
-            df.loc[i, 'pixels_mean_R'] = np.mean(image[:, :, 0])
-            df.loc[i, 'pixels_mean_G'] = np.mean(image[:, :, 1])
-            df.loc[i, 'pixels_mean_B'] = np.mean(image[:, :, 2])
-            df.loc[i, 'pixels_std'] = np.std(image)
-            df.loc[i, 'pixels_std_R'] = np.std(image[:, :, 0])
-            df.loc[i, 'pixels_std_G'] = np.std(image[:, :, 1])
-            df.loc[i, 'pixels_std_B'] = np.std(image[:, :, 2])
 
-            if is_color(image) == 1:
+            if is_color(image)==1:
                 df.loc[i, 'color'] = 1
 
-        except Exception as e:
-            print(f"Could not process {filename} (index {i}): {e}")
+            if process_mediapipe == True:
+                # to be added
+                print('use preprocessing _mediapipe file to get mediapipe mask, mesh and contours')
 
-    df.loc[:, 'no_color'] = 1 - df['color']
+        except ValueError as e:
+            print(f'could not open {filename} (index {i}): {e}')
+
+    df['no_color']= 1 - df['color']
 
     return df
 
@@ -191,6 +152,7 @@ class Dataset(torch.utils.data.Dataset):
         # Select sample
         row = self.df.loc[index]
         filename = row['filename']
+        
 
         # Load data and get label
         img = Image.open(f"{self.image_dir}/{filename}")  
