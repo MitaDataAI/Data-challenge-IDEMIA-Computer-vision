@@ -2,6 +2,7 @@ import torch
 import cv2
 import numpy as np
 from torchvision import transforms
+from torch.utils.data import Dataset as TorchDataset
 from PIL import Image
 import matplotlib.pyplot as plt
 
@@ -134,36 +135,51 @@ def get_device():
 # DEFINE DATASET CLASS
 #---------------------------------------
 
-#class Dataset(torch.utils.data.Dataset): # in "starter notebook code" dataset is imported from torch.utils.data
-class Dataset(torch.utils.data.Dataset):
-    'Characterizes a dataset for PyTorch'
-    def __init__(self, df, image_dir):
-         'Initialization'
-         self.image_dir = image_dir
-         self.df = df
-         self.transform = transforms.ToTensor()
-         
+from pathlib import Path
+import numpy as np
+import pandas as pd
+from PIL import Image
+from torch.utils.data import Dataset as TorchDataset
+from torchvision import transforms
+
+class Dataset(TorchDataset):
+    """
+    General PyTorch Dataset for loading image data from a single root directory.
+    Automatically handles optional fields like 'is_grayscale' or 'gender_id'.
+    """
+
+    def __init__(self, df, base_path):
+        """
+        Args:
+            df (pd.DataFrame): DataFrame with at least 'filename' and 'FaceOcclusion' columns.
+            base_path (str or Path): Root path to images.
+        """
+        self.df = df.reset_index(drop=True)
+        self.base_path = Path(base_path)
+        self.transform = transforms.ToTensor()
+
     def __len__(self):
-        'Denotes the total number of samples'
         return len(self.df)
 
     def __getitem__(self, index):
-        'Generates one sample of data'
-        # Select sample
-        row = self.df.loc[index]
+        row = self.df.iloc[index]
         filename = row['filename']
-        
+        img_path = self.base_path / filename
 
-        # Load data and get label
-        img = Image.open(f"{self.image_dir}/{filename}")  
+        if not img_path.exists():
+            raise FileNotFoundError(f"Image not found: {img_path}")
+
+        img = Image.open(img_path).convert('RGB')
         X = self.transform(img)
 
-        y = row['FaceOcclusion']     
-        y = np.float32(y)
+        y = np.float32(row['FaceOcclusion'])
 
-        gender = row['gender_id'] # changed to have round values 0 or 1
+        # Optional fields
+        gender = row['gender_id'] if 'gender_id' in row else row.get('gender', -1)
+        is_grayscale = row.get('is_grayscale', row.get('no_color', False))
 
-        return X, y, gender, filename
+        return X, y, gender, filename, is_grayscale
+
 
 #--------------------------------------------------
 # Compute mean and standard deviation on the pixels

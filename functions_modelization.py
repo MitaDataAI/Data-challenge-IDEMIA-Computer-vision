@@ -1,29 +1,77 @@
+# Core libraries
+import os
+import pickle
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# PyTorch
 import torch
 import torch.nn as nn
-import numpy as np
+import torch.optim as optim
+from torch.utils.data import Dataset, DataLoader
+
+# Torchvision
+import torchvision
+import torchvision.transforms as transforms
+from torchvision import models
+from torchvision.models import mobilenet_v3_small
+
+# Evaluation
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 
 
 # loss function
+import torch
+import torch.nn as nn
+
+#############################################
+# FUNCTIONS
+#############################################
+
 class WeightedMSELoss(nn.Module):
     """
-    Weighted Mean Squared Error Loss:
-    Applies a custom weight to each element of the squared error
-    before computing the mean. This allows certain samples to 
-    have more or less influence on the total loss.
+    Weighted Mean Squared Error Loss.
+
+    This loss function applies a weight to each individual squared error
+    based on a categorical range (e.g., occlusion level). The weights are
+    defined in advance via a dictionary and are used to emphasize or
+    de-emphasize the contribution of each sample to the total loss.
+
+    Args:
+        weights (dict): A dictionary mapping string labels (range categories)
+                        to numerical weight values. Example:
+                        {'0-0.025': 1.0, '0.025-0.05': 1.5, ...}
+
+    Forward Args:
+        inputs (Tensor): Predicted values (batch_size, 1)
+        targets (Tensor): Ground truth values (batch_size, 1)
+        ranges (list or array-like): Categorical labels (as strings or pandas.Categorical)
+                                     that map each target to a weight via `self.weights`.
+
+    Returns:
+        Tensor: Scalar tensor representing the mean weighted MSE loss.
     """
     def __init__(self, weights):
-        super(WeightedMSELoss, self,).__init__()
+        super(WeightedMSELoss, self).__init__()
         self.weights = weights
-        self.mse = nn.MSELoss(reduction='none')
+        self.mse = nn.MSELoss(reduction='none')  # Keep individual losses per sample
 
-    def forward(self, input, target, weights):
-        # Compute the element-wise squared error
-        squared_error = (input - target) ** 2
-        # Apply weights to the squared errors
-        weighted_squared_error = weights * squared_error
-        # Compute the mean of the weighted squared errors
-        loss = torch.mean(weighted_squared_error)
-        return loss
+    def forward(self, inputs, targets, ranges):
+        # Compute unweighted element-wise squared error
+        loss = self.mse(inputs, targets)
+
+        # Map each range label to its corresponding weight
+        weights = torch.tensor(
+            [self.weights[str(label)] for label in ranges],
+            device=inputs.device
+        )
+
+        # Apply the weights to the losses
+        weighted_loss = loss * weights
+
+        # Return the mean weighted loss over the batch
+        return weighted_loss.mean()
 
 class WeightedMSELoss2(nn.Module):
     """
@@ -102,3 +150,17 @@ def metric_fn(female, male):
 
     # Retourne la moyenne des erreurs + écart absolu (pénalise l'injustice)
     return (err_male + err_female) / 2 + abs(err_male - err_female)
+
+
+def plot_confusion_matrix(results, title):
+    y_true = results['true_range']
+    y_pred = results['pred_range']
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    disp.plot(cmap=plt.cm.Blues)
+    plt.title(title)
+    plt.show()
+    
+    print(f"Classification Report for {title}:\n")
+    print(classification_report(y_true, y_pred, labels=labels, target_names=labels))

@@ -36,3 +36,21 @@ $$
 where $Err_F$ and $Err_M$ are the errors obtained for female and men, respectively.
 
 Hereafter we show you how to load the data and run a naive baseline using a pretrained model.
+
+# Requirements
+The following packages are required to run this project:
+pandas==2.2.3
+numpy==2.0.2
+pillow==11.2.1
+opencv-python==4.11.0.86
+matplotlib==3.9.4
+seaborn==0.13.2
+tqdm==4.67.1
+scikit-learn==1.6.1
+torch==2.7.1
+torchvision==0.22.1
+mediapipe==0.10.21
+
+To install all dependencies, run:
+pip install -r requirements.txt
+
