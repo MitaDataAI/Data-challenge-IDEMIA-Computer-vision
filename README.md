@@ -56,6 +56,106 @@ This formulation encourages models to perform equally well across genders by pen
 
 ---
 
+## 📊 Detailed EDA Discoveries & Modeling Rationale
+
+The original dataset contained only three variables: `Filename`, `FaceOcclusion`, and `Gender`. Naturally, our modeling phase began by focusing on the two most informative predictors: **FaceOcclusion** and **Gender**.
+
+---
+
+### 0 – Imbalanced Data & Weighted Loss Function
+
+During the EDA phase (`file 1-2`), we discovered:
+
+- A strong **imbalance in the `FaceOcclusion` variable**
+- Different patterns across **genders** in terms of pixel intensity
+
+To mitigate the imbalance, we implemented a **class-weighted loss function**. In imbalanced datasets, models tend to overfit to frequent cases and ignore rare ones. Assigning higher weights to underrepresented classes helps the model learn from them.
+
+#### 🔧 Strategy:
+- Applied class weighting for **occlusion**
+- Gender imbalance remains partially unaddressed
+
+#### ✅ Results (using ResNet-18):
+- **Improved performance** on rare occlusion cases
+- **Score dropped from 0.0022 → 0.0017** with weighted loss (file `2-1`)
+- **Fairer and more robust** predictions across groups
+
+---
+
+### 1 – Filename-Derived Variables
+
+From the `Filename` field, we engineered **key features** that contributed significantly to the model:
+
+- **Image type** (color or grayscale)
+- **Database origin** (DB1, DB2, DB3)
+- Metadata used for:
+  - Stratified sampling
+  - Model routing (color vs grayscale)
+  - Subgroup performance analysis
+
+These variables were crucial for customizing training and improving generalization.
+
+---
+
+### 2 – Ensemble Learning by Image Type
+
+Our EDA (`file 1-3`) revealed important visual differences based on:
+
+- **Image type:** color vs grayscale
+- **Gender**
+- **Occlusion level**
+
+#### 🎯 Approach:
+We designed a **dual-model ensemble**:
+- One model trained on **RGB (color) images**
+- One model trained on **grayscale images**
+
+Each model specialized in its input type, improving feature learning and performance.
+
+#### 🏆 Result:
+- **Final score: 0.00089** after 30 epochs (file `2-2`)
+- Best performance in the competition
+- Robust generalization across data types
+
+Further improvement is possible by:
+- Increasing underrepresented occlusion samples
+- Refining analysis for gender-specific patterns
+
+---
+
+### 3 – MediaPipe Integration
+
+We used **MediaPipe Face Mesh** to extract **468 facial landmarks per face**.
+
+#### 🧩 Notes:
+- MediaPipe requires **RGB input** (even if all channels are identical)
+- Binary face masks are stored as 3-channel images (though 1 channel would be enough)
+- A **stratified train-test split** was created using synthetic labels combining:
+  - Database
+  - Gender
+  - Image color type
+
+> ⚠️ The pipeline is partially complete. Intermediate results are saved in the updated DataFrame for future processing.
+
+---
+
+### 4 – Outlook & Next Steps
+
+Although the model achieved the **top score** in the challenge, further enhancements are possible:
+
+#### 🔄 Gender Balance:
+- A **resampling strategy** (as in Data Challenge 1) could help balance male and female samples during EDA
+- This could reduce or eliminate remaining **gender bias** in predictions
+
+#### ⚙️ Model Improvements:
+- Continue refining **ResNet-18** using:
+  - Color/grayscale ensemble learning
+  - Class-weighted training for occlusion
+  - Potential occlusion-level-specific models
+
+---
+
+
 ## Requirements
 
 The following packages are required to run this project:
